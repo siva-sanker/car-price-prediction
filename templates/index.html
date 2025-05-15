@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Price Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1>Welcome to Car Price Predictor</h1>
+            </div>
+            <div class="card-body">
+                <form method="post" accept-charset="UTF-8" onsubmit="event.preventDefault(); send_data();">
+                    
+                    <div class="form-group">
+                        <label><b>Select Company</b></label>
+                        <select name="company" id="company" onchange="load_car_models(this.id, 'car_model')">
+                            <option value="#" selected disabled>Select company</option>
+                            {% for company in companies %}
+                                <option value="{{ company }}">{{ company }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><b>Select Model</b></label>
+                        <select name="car_model" id="car_model"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><b>Select Year of Purchase</b></label>
+                        <select name="year" id="year">
+                            {% for year in years %}
+                                <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><b>Select Fuel Type</b></label>
+                        <select name="fuel_type" id="fuel_type">
+                            {% for fuel in fuel_types %}
+                                <option value="{{ fuel }}">{{ fuel }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><b>Enter Number of Kilometers Driven</b></label>
+                        <input type="text" name="kilo_driven" id="kilo_driven" placeholder="e.g. 50000">
+                    </div>
+
+                    <button type="submit">Predict Price</button>
+                </form>
+
+                <div class="prediction">
+                    <h3><span id="prediction"></span></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function load_car_models(company_id, car_model_id) {
+            var company = document.getElementById(company_id);
+            var car_model = document.getElementById(car_model_id);
+            car_model.innerHTML = "";
+
+            {% for company in companies %}
+                if (company.value == "{{ company }}") {
+                    {% for model in car_models %}
+                        {% if company in model %}
+                            var newOption = document.createElement("option");
+                            newOption.value = "{{ model }}";
+                            newOption.innerHTML = "{{ model }}";
+                            car_model.appendChild(newOption);
+                        {% endif %}
+                    {% endfor %}
+                }
+            {% endfor %}
+        }
+
+        function send_data() {
+            var fd = new FormData(document.querySelector('form'));
+            var xhr = new XMLHttpRequest();
+
+            document.getElementById('prediction').innerText = "Wait! We are predicting the price...";
+
+            xhr.open('POST', '/predict', true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    document.getElementById('prediction').innerText = "Prediction: INR " + xhr.responseText;
+                }
+            }
+            xhr.send(fd);
+        }
+    </script>
+</body>
+</html>
